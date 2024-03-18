@@ -15,7 +15,7 @@ import java.util.Properties;
 
 public class Util {
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/mydb";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/mydb?useSSL=false";
     private static final String DB_USERNAME = "myname";
     private static final String DB_PASSWORD = "root";
 
@@ -39,26 +39,34 @@ public class Util {
     }
 
     public static SessionFactory getSessionFactory() {
+        SessionFactory sessionFactory = null;
 
-        Configuration config = new Configuration();
-        Properties settings = new Properties();
+        try {
+            Configuration config = new Configuration();
+            Properties settings = new Properties();
 
-        settings.put(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
-        settings.put(Environment.JAKARTA_JDBC_URL, DB_URL);
-        settings.put(Environment.JAKARTA_JDBC_USER, DB_USERNAME);
-        settings.put(Environment.JAKARTA_JDBC_PASSWORD, DB_PASSWORD);
-        settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
+            settings.put(Environment.JAKARTA_JDBC_DRIVER, "com.mysql.cj.jdbc.Driver");
+            settings.put(Environment.JAKARTA_JDBC_URL, DB_URL);
+            settings.put(Environment.JAKARTA_JDBC_USER, DB_USERNAME);
+            settings.put(Environment.JAKARTA_JDBC_PASSWORD, DB_PASSWORD);
+            settings.put(Environment.DIALECT, "org.hibernate.dialect.MySQLDialect");
 
-        settings.put(Environment.SHOW_SQL, "true");
-        settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
-        settings.put(Environment.HBM2DDL_AUTO, "");
+            settings.put(Environment.SHOW_SQL, "true");
+            settings.put(Environment.CURRENT_SESSION_CONTEXT_CLASS, "thread");
+            settings.put(Environment.HBM2DDL_AUTO, "");
 
-        config.setProperties(settings);
-        config.addAnnotatedClass(User.class);
+            config.setProperties(settings);
+            config.addAnnotatedClass(User.class);
 
-        ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
-                .applySettings(config.getProperties()).build();
 
-        return config.buildSessionFactory(serviceRegistry);
+            ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                    .applySettings(config.getProperties()).build();
+
+            sessionFactory = config.buildSessionFactory(serviceRegistry);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+
+        return sessionFactory;
     }
 }

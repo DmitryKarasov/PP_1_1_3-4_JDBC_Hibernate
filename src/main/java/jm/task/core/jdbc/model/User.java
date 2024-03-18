@@ -1,13 +1,22 @@
 package jm.task.core.jdbc.model;
 
-public class User {
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Column(name = "age", nullable = false)
     private Byte age;
 
     public User() {

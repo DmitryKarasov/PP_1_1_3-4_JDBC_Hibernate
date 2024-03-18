@@ -31,7 +31,7 @@ public class UserDaoJDBCImpl implements UserDao {
                     " PRIMARY KEY (id))";
 
             statement.executeUpdate(querySql);
-            System.out.println("Таблица 'users' успешно создана.");
+            System.out.println("Таблица " + TABLE_NAME + " успешно создана.");
 
         } catch (SQLException ignored) {
             System.out.println("Не удалось создать таблицу.");
@@ -44,7 +44,7 @@ public class UserDaoJDBCImpl implements UserDao {
             String querySql = "DROP TABLE IF EXISTS " + TABLE_NAME;
 
             statement.executeUpdate(querySql);
-            System.out.println("Таблица 'users' успешно удалена.");
+            System.out.println("Таблица " + TABLE_NAME + " успешно удалена.");
 
         } catch (SQLException ignored) {
             System.out.println("Не получилось удалить таблицу.");
