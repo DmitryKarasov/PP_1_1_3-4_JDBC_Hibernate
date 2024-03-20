@@ -2,6 +2,8 @@ package jm.task.core.jdbc.model;
 
 import jakarta.persistence.*;
 
+import java.util.Objects;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -68,5 +70,32 @@ public class User {
                 ", lastName='" + lastName + '\'' +
                 ", age=" + age +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+
+        result = result * prime + (name == null ? 0 : name.hashCode());
+        result = result * prime + (lastName == null ? 0 : lastName.hashCode());
+        return result * prime + age;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        User otherUser = (User) obj;
+
+        return name.equals(otherUser.name) &&
+                lastName.equals(otherUser.name) &&
+                Objects.equals(age, otherUser.getAge());
     }
 }

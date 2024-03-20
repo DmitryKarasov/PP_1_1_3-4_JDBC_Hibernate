@@ -27,9 +27,7 @@ public class UserServiceImpl implements UserService {
             System.out.println("Некорректное значение id");
             return;
         }
-
         dao.removeUserById(id);
-
     }
 
     public List<User> getAllUsers() {

@@ -17,7 +17,6 @@ public class Main {
         service.saveUser("Vasya", "Vasechkin", (byte) 25);
         service.saveUser("Roman", "Romanov", (byte) 30);
 
-
         List<User> users = service.getAllUsers();
 
         for (User user : users) {

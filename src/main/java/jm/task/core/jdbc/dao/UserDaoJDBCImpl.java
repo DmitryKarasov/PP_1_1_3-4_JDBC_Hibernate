@@ -3,7 +3,7 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -12,18 +12,15 @@ import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
 
-    private static final String TABLE_NAME = "users";
-    private final Connection connection;
-
     public UserDaoJDBCImpl() {
-        connection = Util.getConnection();
     }
 
+    @Override
     public void createUsersTable() {
 
-        try (Statement statement = connection.createStatement()) {
+        try (Statement statement = Util.getConnection().createStatement()) {
 
-            String querySql = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME +
+            String querySql = "CREATE TABLE IF NOT EXISTS users" +
                     " (id INTEGER not NULL AUTO_INCREMENT," +
                     " name VARCHAR (45) not NULL," +
                     " last_name VARCHAR (45) not NULL," +
@@ -31,33 +28,37 @@ public class UserDaoJDBCImpl implements UserDao {
                     " PRIMARY KEY (id))";
 
             statement.executeUpdate(querySql);
-            System.out.println("Таблица " + TABLE_NAME + " успешно создана.");
+            System.out.println("Таблица 'users' успешно создана.");
 
         } catch (SQLException ignored) {
             System.out.println("Не удалось создать таблицу.");
         }
     }
 
+    @Override
     public void dropUsersTable() {
-        try (Statement statement = connection.createStatement()) {
 
-            String querySql = "DROP TABLE IF EXISTS " + TABLE_NAME;
+        try (Statement statement = Util.getConnection().createStatement()) {
 
-            statement.executeUpdate(querySql);
-            System.out.println("Таблица " + TABLE_NAME + " успешно удалена.");
+            statement.executeUpdate("DROP TABLE IF EXISTS users");
+            System.out.println("Таблица 'users' успешно удалена.");
 
         } catch (SQLException ignored) {
             System.out.println("Не получилось удалить таблицу.");
         }
     }
 
+    @Override
     public void saveUser(String name, String lastName, byte age) {
-        try (Statement statement = connection.createStatement()) {
 
-            String querySql = "INSERT INTO " + TABLE_NAME + "(name, last_name, age)" +
-                    " VALUES ('" + name + "', '" + lastName + "', " + age + ")";
+        try (PreparedStatement statement = Util.getConnection()
+                .prepareStatement("INSERT INTO users(name, last_name, age) VALUES (?, ?, ?)")) {
 
-            statement.executeUpdate(querySql);
+            statement.setString(1, name);
+            statement.setString(2, lastName);
+            statement.setInt(3, age);
+            statement.executeUpdate();
+
             System.out.printf("Пользователь с именем %s, фамилией %s и возрастом %d добавлен.\n",
                     name,
                     lastName,
@@ -68,13 +69,15 @@ public class UserDaoJDBCImpl implements UserDao {
         }
     }
 
+    @Override
     public void removeUserById(long id) {
 
-        try (Statement statement = connection.createStatement()) {
+        try (PreparedStatement statement = Util.getConnection()
+                .prepareStatement("DELETE FROM users WHERE id = ?")) {
 
-            String querySql = "DELETE FROM " + TABLE_NAME + " WHERE id = " + id;
+            statement.setLong(1, id);
 
-            if (statement.executeUpdate(querySql) == 0) {
+            if (statement.executeUpdate() == 0) {
                 System.out.println("Пользователя с таким id не существует.");
             } else {
                 System.out.printf("Пользователь с id %d удален.\n", id);
@@ -85,14 +88,14 @@ public class UserDaoJDBCImpl implements UserDao {
         }
     }
 
+    @Override
     public List<User> getAllUsers() {
 
         List<User> users = new ArrayList<>();
 
-        try (Statement statement = connection.createStatement()) {
-            String querySql = "SELECT * FROM " + TABLE_NAME;
+        try (Statement statement = Util.getConnection().createStatement()) {
 
-            ResultSet resultSet = statement.executeQuery(querySql);
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM users");
             while (resultSet.next()) {
                 users.add(new User(
                         resultSet.getString("name"),
@@ -107,11 +110,14 @@ public class UserDaoJDBCImpl implements UserDao {
         return users;
     }
 
+    @Override
     public void cleanUsersTable() {
-        try (Statement statement = connection.createStatement()) {
-            String querySql = "DELETE FROM " + TABLE_NAME;
-            statement.executeUpdate(querySql);
+
+        try (Statement statement = Util.getConnection().createStatement()) {
+
+            statement.executeUpdate("DELETE FROM users");
             System.out.println("Таблица очищена, все данные удалены.");
+
         } catch (SQLException ignored) {
             System.out.println("Не получилось очистить таблицу.");
         }
