@@ -5,6 +5,7 @@ import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
@@ -14,21 +15,23 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        String querySql = "CREATE TABLE IF NOT EXISTS users" +
-                " (id INTEGER not NULL AUTO_INCREMENT," +
-                " name VARCHAR (45) not NULL," +
-                " last_name VARCHAR (45) not NULL," +
-                " age INT (100) not NULL," +
-                " PRIMARY KEY (id))";
-        executeQuery(querySql);
-        System.out.println("Таблица users успешно создана.");
+        executeQuery(
+                "CREATE TABLE IF NOT EXISTS users" +
+                        " (id INTEGER not NULL AUTO_INCREMENT," +
+                        " name VARCHAR (45) not NULL," +
+                        " last_name VARCHAR (45) not NULL," +
+                        " age INT (100) not NULL," +
+                        " PRIMARY KEY (id))",
+                "Таблица users успешно  создана."
+        );
     }
 
     @Override
     public void dropUsersTable() {
-        String querySql = "DROP TABLE IF EXISTS users";
-        executeQuery(querySql);
-        System.out.println("Таблица users успешно удалена.");
+        executeQuery(
+                "DROP TABLE IF EXISTS users",
+                "Таблица users успешно удалена."
+        );
     }
 
     @Override
@@ -54,10 +57,7 @@ public class UserDaoHibernateImpl implements UserDao {
                     age);
 
         } catch (Exception exception) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            exception.printStackTrace();
+            exceptionHandler(exception, transaction);
         }
     }
 
@@ -74,19 +74,23 @@ public class UserDaoHibernateImpl implements UserDao {
             System.out.printf("Пользователь с id %d удален.\n", id);
 
         } catch (Exception exception) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            exception.printStackTrace();
+            exceptionHandler(exception, transaction);
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-        List<User> users;
+        List<User> users = new ArrayList<>();
+        Transaction transaction = null;
 
         try (Session session = Util.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
             users = session.createNativeQuery("SELECT * FROM users", User.class).getResultList();
+            transaction.commit();
+
+        } catch (Exception exception) {
+            exceptionHandler(exception, transaction);
         }
 
         return users;
@@ -94,12 +98,13 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        String querySql = "DELETE FROM users";
-        executeQuery(querySql);
-        System.out.println("Таблица очищена, все данные удалены.");
+        executeQuery(
+                "DELETE FROM users",
+                "Таблица очищена, все данные удалены."
+        );
     }
 
-    private void executeQuery(String querySql) {
+    private void executeQuery(String querySql, String message) {
         Transaction transaction = null;
 
         try (Session session = Util.getSessionFactory().openSession()) {
@@ -107,12 +112,17 @@ public class UserDaoHibernateImpl implements UserDao {
 
             session.createNativeQuery(querySql, User.class).executeUpdate();
             transaction.commit();
+            System.out.println(message);
 
         } catch (Exception exception) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            exception.printStackTrace();
+            exceptionHandler(exception, transaction);
         }
+    }
+
+    private void exceptionHandler(Exception exception, Transaction transaction) {
+        if (transaction != null) {
+            transaction.rollback();
+        }
+        exception.printStackTrace();
     }
 }
